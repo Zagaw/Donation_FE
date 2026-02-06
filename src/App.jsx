@@ -16,6 +16,14 @@ import RequestList from './components/donor/RequestList';
 import DonationHistory from './components/donor/DonationHistory';
 import Certificates from './components/donor/Certificates';
 import DonorProfile from './components/donor/DonorProfile';
+import AdminDashboard from './components/admin/AdminDashboard';
+import ManageDonations from './components/admin/ManageDonations';
+import ManageRequests from './components/admin/ManageRequests';
+import ViewUsers from './components/admin/ViewUsers';
+import GenerateCertificates from './components/admin/GenerateCertificates';
+import ManageMatches from './components/admin/ManageMatches';
+import Reports from './components/admin/Reports';
+import AdminProfile from './components/admin/AdminProfile';
 
 function App() {
   return (
@@ -42,6 +50,16 @@ function App() {
           <Route path="/donor/history" element={<DonationHistory />} />
           <Route path="/donor/certificates" element={<Certificates />} />
           <Route path="/donor/profile" element={<DonorProfile />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/manage-donations" element={<ManageDonations />} />
+          <Route path="/admin/manage-requests" element={<ManageRequests />} />
+          <Route path="/admin/view-users" element={<ViewUsers />} />
+          <Route path="/admin/certificates" element={<GenerateCertificates />} />
+          <Route path="/admin/manage-matches" element={<ManageMatches />} />
+          <Route path="/admin/reports" element={<Reports />} />
+          <Route path="/admin/profile" element={<AdminProfile />} />
           
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
