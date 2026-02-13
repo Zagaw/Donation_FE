@@ -24,6 +24,7 @@ import GenerateCertificates from './components/admin/GenerateCertificates';
 import ManageMatches from './components/admin/ManageMatches';
 import Reports from './components/admin/Reports';
 import AdminProfile from './components/admin/AdminProfile';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
@@ -36,30 +37,37 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           
           {/* Receiver Routes */}
-          <Route path="/receiver" element={<ReceiverDashboard />} />
-          <Route path="/receiver/request" element={<RequestForm />} />
-          <Route path="/receiver/donations" element={<DonationList />} />
-          <Route path="/receiver/received" element={<ReceivedDonations />} />
-          <Route path="/receiver/feedback" element={<Feedback />} />
-          <Route path="/receiver/profile" element={<Profile />} />
-          
+          <Route element={<PrivateRoute allowedRoles={['receiver']} />}>
+            <Route path="/receiver" element={<ReceiverDashboard />} />
+            <Route path="/receiver/request" element={<RequestForm />} />
+            <Route path="/receiver/donations" element={<DonationList />} />
+            <Route path="/receiver/received" element={<ReceivedDonations />} />
+            <Route path="/receiver/feedback" element={<Feedback />} />
+            <Route path="/receiver/profile" element={<Profile />} />
+          </Route>
+
           {/* Donor Routes */}
-          <Route path="/donor" element={<DonorDashboard />} />
-          <Route path="/donor/donate" element={<DonationForm />} />
-          <Route path="/donor/requests" element={<RequestList />} />
-          <Route path="/donor/history" element={<DonationHistory />} />
-          <Route path="/donor/certificates" element={<Certificates />} />
-          <Route path="/donor/profile" element={<DonorProfile />} />
+          <Route element={<PrivateRoute allowedRoles={['donor']} />}>
+            <Route path="/donor" element={<DonorDashboard />} />
+            <Route path="/donor/donate" element={<DonationForm />} />
+            <Route path="/donor/requests" element={<RequestList />} />
+            <Route path="/donor/history" element={<DonationHistory />} />
+            <Route path="/donor/certificates" element={<Certificates />} />
+            <Route path="/donor/profile" element={<DonorProfile />} />
+          </Route>
+          
           
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/manage-donations" element={<ManageDonations />} />
-          <Route path="/admin/manage-requests" element={<ManageRequests />} />
-          <Route path="/admin/view-users" element={<ViewUsers />} />
-          <Route path="/admin/certificates" element={<GenerateCertificates />} />
-          <Route path="/admin/manage-matches" element={<ManageMatches />} />
-          <Route path="/admin/reports" element={<Reports />} />
-          <Route path="/admin/profile" element={<AdminProfile />} />
+          <Route element={<PrivateRoute allowedRoles={['donor']} />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/manage-donations" element={<ManageDonations />} />
+            <Route path="/admin/manage-requests" element={<ManageRequests />} />
+            <Route path="/admin/view-users" element={<ViewUsers />} />
+            <Route path="/admin/certificates" element={<GenerateCertificates />} />
+            <Route path="/admin/manage-matches" element={<ManageMatches />} />
+            <Route path="/admin/reports" element={<Reports />} />
+            <Route path="/admin/profile" element={<AdminProfile />} />
+          </Route>
           
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
