@@ -25,6 +25,8 @@ import ManageMatches from './components/admin/ManageMatches';
 import Reports from './components/admin/Reports';
 import AdminProfile from './components/admin/AdminProfile';
 import PrivateRoute from './components/PrivateRoute';
+import AdminInterests from './components/admin/AdminInterests';
+import Notifications from './components/Notifications';
 
 function App() {
   return (
@@ -36,6 +38,12 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           
+
+          {/* Notifications - Accessible by all authenticated users */}
+          <Route element={<PrivateRoute allowedRoles={['admin', 'donor', 'receiver']} />}>
+            <Route path="/notifications" element={<Notifications />} />
+          </Route>
+
           {/* Receiver Routes */}
           <Route element={<PrivateRoute allowedRoles={['receiver']} />}>
             <Route path="/receiver" element={<ReceiverDashboard />} />
@@ -58,10 +66,11 @@ function App() {
           
           
           {/* Admin Routes */}
-          <Route element={<PrivateRoute allowedRoles={['donor']} />}>
+          <Route element={<PrivateRoute allowedRoles={['admin']} />}>
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/manage-donations" element={<ManageDonations />} />
             <Route path="/admin/manage-requests" element={<ManageRequests />} />
+            <Route path="/admin/manage-interests" element={<AdminInterests />} />
             <Route path="/admin/view-users" element={<ViewUsers />} />
             <Route path="/admin/certificates" element={<GenerateCertificates />} />
             <Route path="/admin/manage-matches" element={<ManageMatches />} />

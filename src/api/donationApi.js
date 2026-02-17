@@ -27,8 +27,13 @@ export const donationApi = {
     return api.get('/admin/donations');
   },
 
+  // Get approved requests for donors
+  getApprovedRequests: () => {
+    return api.get('/donor/requests/approved');
+  },
+
   // Update donation status (admin)
-  updateStatus: (id, status) => {
+  /*updateStatus: (id, status) => {
     return api.put(`/admin/donations/${id}/status`, { status });
-  }
+  }*/
 };

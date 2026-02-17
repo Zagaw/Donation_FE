@@ -23,11 +23,11 @@ export const requestApi = {
   },
 
   // Update request
-  update: (id, requestData) => {
+  /*update: (id, requestData) => {
     return api.put(`/receiver/requests/${id}`, requestData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-  }
+  }*/
 };

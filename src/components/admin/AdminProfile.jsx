@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from './AdminLayout';
+import { authApi } from '../../api/authApi';
 import { 
   FaUser, 
   FaEnvelope, 
@@ -8,50 +10,92 @@ import {
   FaCalendarAlt, 
   FaEdit,
   FaSave,
-  FaShieldAlt,
-  FaBell,
-  FaChartLine,
-  FaCog,
   FaLock,
   FaKey,
-  FaHistory,
-  FaUserShield
+  FaSpinner,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaEye,
+  FaEyeSlash
 } from 'react-icons/fa';
 
 const AdminProfile = () => {
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  
   const [profile, setProfile] = useState({
-    name: 'Admin User',
-    email: 'admin@communityconnect.org',
-    phone: '+1 (555) 000-0000',
-    address: '789 Admin Street, City, State 00000',
-    joinDate: 'January 1, 2023',
-    role: 'Super Administrator',
-    department: 'System Management',
-    bio: 'System administrator responsible for managing the Community Donation Platform. Ensuring smooth operations and user satisfaction.',
-    preferences: {
-      emailNotifications: true,
-      smsNotifications: false,
-      systemAlerts: true,
-      reportEmails: true,
-      twoFactorAuth: true
-    }
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    joinDate: '',
+    bio: ''
   });
 
-  const activityLog = [
-    { id: 1, action: 'Approved 5 donations', time: 'Today, 10:30 AM', ip: '192.168.1.1' },
-    { id: 2, action: 'Generated monthly report', time: 'Today, 09:15 AM', ip: '192.168.1.1' },
-    { id: 3, action: 'Suspended user account', time: 'Yesterday, 03:45 PM', ip: '192.168.1.1' },
-    { id: 4, action: 'Updated system settings', time: 'Yesterday, 11:20 AM', ip: '192.168.1.1' },
-  ];
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    new_password_confirmation: ''
+  });
 
-  const permissions = [
-    { name: 'User Management', level: 'Full Access', icon: FaUserShield },
-    { name: 'Donation Management', level: 'Full Access', icon: FaChartLine },
-    { name: 'System Settings', level: 'Full Access', icon: FaCog },
-    { name: 'Report Generation', level: 'Full Access', icon: FaChartLine },
-    { name: 'Certificate Management', level: 'Full Access', icon: FaKey },
-  ];
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+
+  const [originalProfile, setOriginalProfile] = useState({});
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (!authApi.checkAuth()) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await authApi.getMe();
+      const userData = response.data.user;
+      
+      const formattedProfile = {
+        name: userData.name || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        address: userData.address || '',
+        joinDate: userData.created_at ? new Date(userData.created_at).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }) : 'N/A',
+        bio: userData.bio || ''
+      };
+      
+      setProfile(formattedProfile);
+      setOriginalProfile(formattedProfile);
+      
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setError('Failed to load profile data. Please try again.');
+      
+      if (error.response?.status === 401) {
+        authApi.clearAuth();
+        navigate('/login');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,29 +105,136 @@ const AdminProfile = () => {
     }));
   };
 
-  const handleToggle = (preference) => {
-    setProfile(prev => ({
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({
       ...prev,
-      preferences: {
-        ...prev.preferences,
-        [preference]: !prev.preferences[preference]
-      }
+      [name]: value
     }));
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+  const togglePasswordVisibility = (field) => {
+    setShowPassword(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
   };
 
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+
+      const updateData = {
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        address: profile.address
+      };
+
+      const response = await authApi.updateProfile(updateData);
+      
+      setSuccess('Profile updated successfully!');
+      setIsEditing(false);
+      setOriginalProfile(profile);
+      
+      setTimeout(() => setSuccess(null), 3000);
+      
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setError(error.response?.data?.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+
+      // Validate passwords match
+      if (passwordData.new_password !== passwordData.new_password_confirmation) {
+        setError('New passwords do not match');
+        setSaving(false);
+        return;
+      }
+
+      const updateData = {
+        current_password: passwordData.current_password,
+        new_password: passwordData.new_password,
+        new_password_confirmation: passwordData.new_password_confirmation
+      };
+
+      const response = await authApi.updateProfile(updateData);
+      
+      setSuccess('Password updated successfully!');
+      setChangingPassword(false);
+      setPasswordData({
+        current_password: '',
+        new_password: '',
+        new_password_confirmation: ''
+      });
+      
+      setTimeout(() => setSuccess(null), 3000);
+      
+    } catch (error) {
+      console.error('Error updating password:', error);
+      setError(error.response?.data?.message || 'Failed to update password. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setProfile(originalProfile);
+    setIsEditing(false);
+    setError(null);
+  };
+
+  const getInitials = () => {
+    if (!profile.name) return 'A';
+    return profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <FaSpinner className="animate-spin text-4xl text-teal-600 mx-auto mb-4" />
+            <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
-    <AdminLayout activePage="profile">
+    <AdminLayout>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Profile</h1>
           <p className="text-gray-600">Manage your administrator account and settings</p>
         </div>
+
+        {/* Alert Messages */}
+        {error && (
+          <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-center">
+            <FaExclamationCircle className="text-red-500 mr-3" />
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
+        
+        {success && (
+          <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-center">
+            <FaCheckCircle className="text-green-500 mr-3" />
+            <p className="text-green-700">{success}</p>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Profile Info */}
@@ -95,17 +246,44 @@ const AdminProfile = () => {
                   <FaUser className="text-teal-600 mr-2" />
                   Administrator Information
                 </h2>
-                <button
-                  onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-                  className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all transform hover:-translate-y-1 ${
-                    isEditing 
-                      ? 'bg-teal-600 hover:bg-teal-700 text-white' 
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  {isEditing ? <FaSave className="mr-2" /> : <FaEdit className="mr-2" />}
-                  {isEditing ? 'Save Changes' : 'Edit Profile'}
-                </button>
+                <div className="flex space-x-2">
+                  {isEditing ? (
+                    <>
+                      <button
+                        onClick={handleCancel}
+                        className="flex items-center px-4 py-2 rounded-lg font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all"
+                        disabled={saving}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="flex items-center px-4 py-2 rounded-lg font-medium bg-teal-600 hover:bg-teal-700 text-white transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {saving ? (
+                          <>
+                            <FaSpinner className="animate-spin mr-2" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <FaSave className="mr-2" />
+                            Save Changes
+                          </>
+                        )}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="flex items-center px-4 py-2 rounded-lg font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all transform hover:-translate-y-1"
+                    >
+                      <FaEdit className="mr-2" />
+                      Edit Profile
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Profile Form */}
@@ -122,9 +300,10 @@ const AdminProfile = () => {
                       value={profile.name}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">{profile.name}</div>
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">{profile.name || 'Not provided'}</div>
                   )}
                 </div>
 
@@ -132,7 +311,7 @@ const AdminProfile = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Role
                   </label>
-                  <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">{profile.role}</div>
+                  <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">Administrator</div>
                 </div>
 
                 <div>
@@ -147,6 +326,7 @@ const AdminProfile = () => {
                       value={profile.email}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   ) : (
                     <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">{profile.email}</div>
@@ -165,9 +345,10 @@ const AdminProfile = () => {
                       value={profile.phone}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">{profile.phone}</div>
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">{profile.phone || 'Not provided'}</div>
                   )}
                 </div>
 
@@ -177,23 +358,6 @@ const AdminProfile = () => {
                     Join Date
                   </label>
                   <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">{profile.joinDate}</div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Department
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="department"
-                      value={profile.department}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">{profile.department}</div>
-                  )}
                 </div>
 
                 <div className="md:col-span-2">
@@ -208,9 +372,10 @@ const AdminProfile = () => {
                       onChange={handleChange}
                       rows="2"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">{profile.address}</div>
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">{profile.address || 'Not provided'}</div>
                   )}
                 </div>
 
@@ -225,9 +390,10 @@ const AdminProfile = () => {
                       onChange={handleChange}
                       rows="4"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800 whitespace-pre-line">{profile.bio}</div>
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800 whitespace-pre-line">{profile.bio || 'No bio provided'}</div>
                   )}
                 </div>
               </div>
@@ -239,8 +405,12 @@ const AdminProfile = () => {
                 <FaLock className="text-indigo-600 mr-2" />
                 Account Security
               </h2>
-              <div className="space-y-4">
-                <div className="w-full p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-between">
+              
+              {!changingPassword ? (
+                <button
+                  onClick={() => setChangingPassword(true)}
+                  className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-between"
+                >
                   <div className="flex items-center">
                     <FaLock className="text-gray-600 mr-3" />
                     <div>
@@ -249,136 +419,129 @@ const AdminProfile = () => {
                     </div>
                   </div>
                   <span className="text-teal-600">→</span>
-                </div>
-                
-                <div className="w-full p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-between">
-                  <div className="flex items-center">
-                    <FaKey className="text-gray-600 mr-3" />
-                    <div>
-                      <h3 className="font-medium text-gray-800">Two-Factor Authentication</h3>
-                      <p className="text-sm text-gray-500">Add extra security to your account</p>
+                </button>
+              ) : (
+                <div className="space-y-4">
+                  <h3 className="font-medium text-gray-800 mb-4">Update Password</h3>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Current Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword.current ? 'text' : 'password'}
+                        name="current_password"
+                        value={passwordData.current_password}
+                        onChange={handlePasswordChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent pr-10"
+                        disabled={saving}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('current')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                      >
+                        {showPassword.current ? <FaEyeSlash /> : <FaEye />}
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center">
-                    <span className="text-emerald-600 mr-2">Enabled</span>
-                    <div 
-                      onClick={() => handleToggle('twoFactorAuth')}
-                      className={`w-12 h-6 rounded-full transition-colors cursor-pointer ${profile.preferences.twoFactorAuth ? 'bg-teal-600' : 'bg-gray-300'}`}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      New Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword.new ? 'text' : 'password'}
+                        name="new_password"
+                        value={passwordData.new_password}
+                        onChange={handlePasswordChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent pr-10"
+                        disabled={saving}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('new')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                      >
+                        {showPassword.new ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Confirm New Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword.confirm ? 'text' : 'password'}
+                        name="new_password_confirmation"
+                        value={passwordData.new_password_confirmation}
+                        onChange={handlePasswordChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent pr-10"
+                        disabled={saving}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('confirm')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                      >
+                        {showPassword.confirm ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-2 pt-4">
+                    <button
+                      onClick={handlePasswordUpdate}
+                      disabled={saving}
+                      className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50"
                     >
-                      <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${profile.preferences.twoFactorAuth ? 'translate-x-7' : 'translate-x-1'}`} />
-                    </div>
+                      {saving ? <FaSpinner className="animate-spin mx-auto" /> : 'Update Password'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setChangingPassword(false);
+                        setPasswordData({
+                          current_password: '',
+                          new_password: '',
+                          new_password_confirmation: ''
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </div>
-                
-                <div className="w-full p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-between">
-                  <div className="flex items-center">
-                    <FaHistory className="text-gray-600 mr-3" />
-                    <div>
-                      <h3 className="font-medium text-gray-800">Login Activity</h3>
-                      <p className="text-sm text-gray-500">Review recent account activity</p>
-                    </div>
-                  </div>
-                  <span className="text-teal-600">View</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
-          {/* Right Column - Permissions & Activity */}
+          {/* Right Column - Profile Summary */}
           <div className="space-y-8">
             {/* Profile Summary */}
             <div className="bg-gradient-to-br from-teal-50 to-indigo-50 rounded-xl p-6 border border-teal-200">
               <div className="text-center mb-6">
                 <div className="w-24 h-24 bg-gradient-to-r from-teal-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-2xl">
-                  A
+                  {getInitials()}
                 </div>
-                <h3 className="text-xl font-bold text-gray-800">{profile.name}</h3>
-                <p className="text-gray-600">{profile.role}</p>
-                <div className="mt-2">
-                  <span className="inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm">
-                    ⭐ Super Admin
-                  </span>
-                </div>
+                <h3 className="text-xl font-bold text-gray-800">{profile.name || 'Administrator'}</h3>
+                <p className="text-gray-600">{profile.email}</p>
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Account Status</span>
-                  <span className="font-medium text-emerald-600">Active</span>
+                  <span className="font-medium text-emerald-600 flex items-center">
+                    <FaCheckCircle className="mr-1" /> Active
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Member Since</span>
                   <span className="font-medium text-gray-800">{profile.joinDate}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Last Login</span>
-                  <span className="font-medium text-teal-600">Today, 10:30 AM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Access Level</span>
-                  <span className="font-medium text-indigo-600">Full Access</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Permissions */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                <FaUserShield className="text-purple-600 mr-2" />
-                System Permissions
-              </h2>
-              <div className="space-y-4">
-                {permissions.map((perm, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center">
-                      <div className="p-2 rounded-lg bg-teal-100 mr-3">
-                        <perm.icon className="text-teal-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-800">{perm.name}</h3>
-                        <p className="text-sm text-gray-500">{perm.level}</p>
-                      </div>
-                    </div>
-                    <span className="text-emerald-600">✓</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                <FaHistory className="text-amber-600 mr-2" />
-                Recent Activity
-              </h2>
-              <div className="space-y-4">
-                {activityLog.map((activity) => (
-                  <div key={activity.id} className="pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-medium text-gray-800">{activity.action}</h3>
-                      <span className="text-xs text-gray-500">{activity.time}</span>
-                    </div>
-                    <p className="text-xs text-gray-500">IP: {activity.ip}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Admin Tools</h2>
-              <div className="space-y-3">
-                <a href="/admin/manage-donations" className="flex items-center p-3 bg-white rounded-lg hover:shadow-md transition-all">
-                  <span className="text-teal-600 mr-3">📊</span>
-                  <span className="text-gray-700">System Dashboard</span>
-                </a>
-                <a href="/admin/reports" className="flex items-center p-3 bg-white rounded-lg hover:shadow-md transition-all">
-                  <span className="text-indigo-600 mr-3">📈</span>
-                  <span className="text-gray-700">Generate Reports</span>
-                </a>
-                <a href="/admin/view-users" className="flex items-center p-3 bg-white rounded-lg hover:shadow-md transition-all">
-                  <span className="text-amber-600 mr-3">👥</span>
-                  <span className="text-gray-700">Manage Users</span>
-                </a>
               </div>
             </div>
           </div>
