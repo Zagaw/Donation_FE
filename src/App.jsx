@@ -27,6 +27,7 @@ import AdminProfile from './components/admin/AdminProfile';
 import PrivateRoute from './components/PrivateRoute';
 import AdminInterests from './components/admin/AdminInterests';
 import Notifications from './components/Notifications';
+import MatchDetails from './components/MatchDetails';
 
 function App() {
   return (
@@ -42,6 +43,10 @@ function App() {
           {/* Notifications - Accessible by all authenticated users */}
           <Route element={<PrivateRoute allowedRoles={['admin', 'donor', 'receiver']} />}>
             <Route path="/notifications" element={<Notifications />} />
+          </Route>
+
+          <Route element={<PrivateRoute allowedRoles={['donor', 'receiver']} />}>
+            <Route path="/matches/:id" element={<MatchDetails />} />
           </Route>
 
           {/* Receiver Routes */}

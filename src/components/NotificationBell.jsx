@@ -94,8 +94,12 @@ const NotificationBell = () => {
       handleMarkAsRead(notification.id, { stopPropagation: () => {} });
     }
     
-    // Navigate based on notification type and user role
-    if (notification.data.action_url) {
+    // Navigate based on notification type
+    if (notification.data.type === 'match_created') {
+      // Navigate to match details page
+      navigate(`/matches/${notification.data.match_id}`);
+    } else if (notification.data.action_url) {
+      // Fallback to action_url for other notification types
       navigate(notification.data.action_url);
     }
     
@@ -115,6 +119,19 @@ const NotificationBell = () => {
       default:
         return <FaBell className="text-gray-500 text-lg" />;
     }
+  };
+
+  const getNotificationPreview = (data) => {
+    if (data.type === 'match_created') {
+      if (data.donor_name) {
+        // This is a receiver notification
+        return `Matched with donor: ${data.donor_name}`;
+      } else if (data.receiver_name) {
+        // This is a donor notification
+        return `Matched with receiver: ${data.receiver_name}`;
+      }
+    }
+    return data.message || '';
   };
 
   const getNotificationTime = (dateString) => {
@@ -183,7 +200,7 @@ const NotificationBell = () => {
                         {notification.data.title || 'New Notification'}
                       </p>
                       <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                        {notification.data.message || ''}
+                        {getNotificationPreview(notification.data)}
                       </p>
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-xs text-gray-400">

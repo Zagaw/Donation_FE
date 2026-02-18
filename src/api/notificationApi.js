@@ -20,5 +20,18 @@ export const notificationApi = {
   // Mark all as read
   markAllAsRead: () => {
     return api.post('/notifications/mark-all-as-read');
+  },
+
+  deleteNotification: (id) => {
+    return api.delete(`/notifications/${id}`);
+  },
+
+  clearAll: () => {
+    return api.delete('/notifications/clear-all');
+  },
+
+  // Get match details for notification click
+  getMatchDetails: (id) => {
+    return api.get(`/matches/${id}`);
   }
 };

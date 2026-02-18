@@ -30,4 +30,9 @@ export const requestApi = {
       },
     });
   }*/
+
+     // Get approved requests (for donors)
+  getApprovedRequests: () => {
+    return api.get('/donor/requests/approved');
+  }
 };

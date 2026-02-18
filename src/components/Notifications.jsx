@@ -11,11 +11,13 @@ import {
   FaCheckDouble,
   FaArrowLeft,
   FaSpinner,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaUser,
+  FaEnvelope,
+  FaPhone
 } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
 
-// Use appropriate layout based on user role
 const Notifications = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
@@ -102,8 +104,10 @@ const Notifications = () => {
       handleMarkAsRead(notification.id);
     }
     
-    // Navigate if there's an action URL
-    if (notification.data.action_url) {
+    // Navigate based on notification type
+    if (notification.data.type === 'match_created') {
+      navigate(`/matches/${notification.data.match_id}`);
+    } else if (notification.data.action_url) {
       navigate(notification.data.action_url);
     }
   };
@@ -122,6 +126,17 @@ const Notifications = () => {
       default:
         return <FaBell className={`${iconClass} text-gray-500`} />;
     }
+  };
+
+  const getNotificationPreview = (data) => {
+    if (data.type === 'match_created') {
+      if (data.donor_name) {
+        return `Matched with donor: ${data.donor_name}`;
+      } else if (data.receiver_name) {
+        return `Matched with receiver: ${data.receiver_name}`;
+      }
+    }
+    return data.message || '';
   };
 
   const getNotificationTime = (dateString) => {
@@ -225,27 +240,33 @@ const Notifications = () => {
                           {getNotificationTime(notification.created_at)}
                         </span>
                       </div>
-                      <p className="text-gray-600 mb-3">{notification.data.message}</p>
+                      <p className="text-gray-600 mb-3">{getNotificationPreview(notification.data)}</p>
                       
                       {/* Details based on notification type */}
                       {notification.data.type === 'match_created' && (
-                        <div className="bg-gray-50 p-3 rounded-lg mb-3">
+                        <div className="bg-gray-50 p-4 rounded-lg mb-3">
+                          <p className="text-sm font-medium text-gray-700 mb-2">Match Details:</p>
                           <p className="text-sm text-gray-600">
                             <span className="font-medium">Item:</span> {notification.data.item_name}
                           </p>
                           {notification.data.donor_name && (
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-gray-600 mt-1 flex items-center">
+                              <FaUser className="mr-2 text-gray-400" />
                               <span className="font-medium">Donor:</span> {notification.data.donor_name}
                             </p>
                           )}
                           {notification.data.receiver_name && (
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-gray-600 mt-1 flex items-center">
+                              <FaUser className="mr-2 text-gray-400" />
                               <span className="font-medium">Receiver:</span> {notification.data.receiver_name}
                             </p>
                           )}
                           <p className="text-sm text-gray-600 mt-1">
                             <span className="font-medium">Match Type:</span>{' '}
                             {notification.data.match_type === 'interest' ? 'Interest-Based' : 'Manual'}
+                          </p>
+                          <p className="text-sm text-teal-600 mt-2">
+                            👆 Click to view full contact details
                           </p>
                         </div>
                       )}
