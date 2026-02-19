@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { notificationApi } from '../api/notificationApi';
+import { api } from '../api/api';
 import { 
   FaHandshake, 
   FaUser, 
@@ -38,7 +39,7 @@ const MatchDetails = () => {
   const fetchCurrentUser = async () => {
     try {
       // You'll need to add this endpoint to your authApi
-      const response = await api.get('/me');
+      const response = await api.auth.getMe();
       setUser(response.data.user);
     } catch (error) {
       console.error('Error fetching user:', error);

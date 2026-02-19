@@ -28,6 +28,7 @@ const ReceiverLayout = ({ children }) => {
     { name: 'Dashboard', path: '/receiver', icon: FaTachometerAlt },
     { name: 'Request Form', path: '/receiver/request', icon: FaPlusCircle },
     { name: 'Donation Lists', path: '/receiver/donations', icon: FaList },
+    { name: 'My Requests', path: '/receiver/requests', icon: FaList },
     { name: 'Received Donations', path: '/receiver/received', icon: FaBoxOpen },
     { name: 'Feedback', path: '/receiver/feedback', icon: FaCommentDots },
     { name: 'Profile', path: '/receiver/profile', icon: FaUser },

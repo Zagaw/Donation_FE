@@ -28,6 +28,8 @@ import PrivateRoute from './components/PrivateRoute';
 import AdminInterests from './components/admin/AdminInterests';
 import Notifications from './components/Notifications';
 import MatchDetails from './components/MatchDetails';
+import DonorDonations from './components/donor/DonorDonations';
+import ReceiverRequests from './components/receiver/ReceiverRequests';
 
 function App() {
   return (
@@ -46,6 +48,9 @@ function App() {
           </Route>
 
           <Route element={<PrivateRoute allowedRoles={['donor', 'receiver']} />}>
+            <Route path="/donor/matches/:id" element={<MatchDetails />} />
+            <Route path="/receiver/matches/:id" element={<MatchDetails />} />
+            <Route path="/matches/:id" element={<MatchDetails />} />
             <Route path="/matches/:id" element={<MatchDetails />} />
           </Route>
 
@@ -53,6 +58,7 @@ function App() {
           <Route element={<PrivateRoute allowedRoles={['receiver']} />}>
             <Route path="/receiver" element={<ReceiverDashboard />} />
             <Route path="/receiver/request" element={<RequestForm />} />
+            <Route path="/receiver/requests" element={<ReceiverRequests />} />
             <Route path="/receiver/donations" element={<DonationList />} />
             <Route path="/receiver/received" element={<ReceivedDonations />} />
             <Route path="/receiver/feedback" element={<Feedback />} />
@@ -64,6 +70,7 @@ function App() {
             <Route path="/donor" element={<DonorDashboard />} />
             <Route path="/donor/donate" element={<DonationForm />} />
             <Route path="/donor/requests" element={<RequestList />} />
+            <Route path="/donor/donations" element={<DonorDonations />} />
             <Route path="/donor/history" element={<DonationHistory />} />
             <Route path="/donor/certificates" element={<Certificates />} />
             <Route path="/donor/profile" element={<DonorProfile />} />

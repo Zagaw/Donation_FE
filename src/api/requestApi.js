@@ -17,6 +17,11 @@ export const requestApi = {
     return api.get('/receiver/requests');
   },
 
+  // For detailed requests page (wrapped object)
+  getMyRequestsWithDetails: () => {
+    return api.get('/receiver/requests/details');
+  },
+
   // Delete request
   delete: (id) => {
     return api.delete(`/receiver/requests/${id}`);
@@ -30,6 +35,16 @@ export const requestApi = {
       },
     });
   }*/
+
+    // Get my matches (for receiver)
+  getMyMatches: () => {
+    return api.get('/receiver/matches');
+  },
+
+  // Get single match details (for receiver)
+  getMatchDetails: (id) => {
+    return api.get(`/receiver/matches/${id}`);
+  },
 
      // Get approved requests (for donors)
   getApprovedRequests: () => {

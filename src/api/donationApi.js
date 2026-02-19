@@ -17,6 +17,21 @@ export const donationApi = {
     return api.get('/donor/donations');
   },
 
+  // For detailed donations page (wrapped object)
+  getMyDonationsWithDetails: () => {
+    return api.get('/donor/donations/details');
+  },
+
+   // Get user's matches
+  getMyMatches: () => {
+    return api.get('/donor/matches');
+  },
+
+  // Get single match details
+  getMatchDetails: (id) => {
+    return api.get(`/donor/matches/${id}`);
+  },
+
   // Delete donation
   delete: (id) => {
     return api.delete(`/donor/donations/${id}`);

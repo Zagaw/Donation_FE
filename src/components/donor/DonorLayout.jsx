@@ -28,6 +28,7 @@ const DonorLayout = ({ children }) => {
     { name: 'Dashboard', path: '/donor', icon: FaTachometerAlt },
     { name: 'Donation Form', path: '/donor/donate', icon: FaDonate },
     { name: 'Request Lists', path: '/donor/requests', icon: FaList },
+    { name: 'My Donations', path: '/donor/donations', icon: FaList },
     { name: 'Donation History', path: '/donor/history', icon: FaHistory },
     { name: 'Certificates', path: '/donor/certificates', icon: FaCertificate },
     { name: 'Profile', path: '/donor/profile', icon: FaUser },
