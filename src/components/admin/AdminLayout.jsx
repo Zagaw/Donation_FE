@@ -32,6 +32,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Certificates', path: '/admin/certificates', icon: FaCertificate },
     { name: 'Manage Matches', path: '/admin/manage-matches', icon: FaHandshake },
     { name: 'Reports', path: '/admin/reports', icon: FaChartBar },
+    { name: 'Feedbacks', path: '/admin/feedback', icon: FaChartBar },
     { name: 'Profile', path: '/admin/profile', icon: FaUser },
   ];
 

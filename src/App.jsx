@@ -30,6 +30,11 @@ import Notifications from './components/Notifications';
 import MatchDetails from './components/MatchDetails';
 import DonorDonations from './components/donor/DonorDonations';
 import ReceiverRequests from './components/receiver/ReceiverRequests';
+import AdminGenerateCertificates from './components/admin/AdminGenerateCertificates';
+import DonorCertificates from './components/donor/DonorCertificates';
+import CertificateDetails from './components/donor/CertificateDetails';
+import FeedbackPage from './components/donor/FeedbackPage';
+import AdminFeedback from './components/admin/AdminFeedback';
 
 function App() {
   return (
@@ -61,7 +66,7 @@ function App() {
             <Route path="/receiver/requests" element={<ReceiverRequests />} />
             <Route path="/receiver/donations" element={<DonationList />} />
             <Route path="/receiver/received" element={<ReceivedDonations />} />
-            <Route path="/receiver/feedback" element={<Feedback />} />
+            <Route path="/receiver/feedback" element={<FeedbackPage />} />
             <Route path="/receiver/profile" element={<Profile />} />
           </Route>
 
@@ -72,7 +77,9 @@ function App() {
             <Route path="/donor/requests" element={<RequestList />} />
             <Route path="/donor/donations" element={<DonorDonations />} />
             <Route path="/donor/history" element={<DonationHistory />} />
-            <Route path="/donor/certificates" element={<Certificates />} />
+            <Route path="/donor/certificates" element={<DonorCertificates />} />
+            <Route path="/donor/certificates/:id" element={<CertificateDetails />} /> 
+            <Route path="/donor/feedback" element={<FeedbackPage />} />
             <Route path="/donor/profile" element={<DonorProfile />} />
           </Route>
           
@@ -84,8 +91,9 @@ function App() {
             <Route path="/admin/manage-requests" element={<ManageRequests />} />
             <Route path="/admin/manage-interests" element={<AdminInterests />} />
             <Route path="/admin/view-users" element={<ViewUsers />} />
-            <Route path="/admin/certificates" element={<GenerateCertificates />} />
+            <Route path="/admin/certificates" element={<AdminGenerateCertificates />} />
             <Route path="/admin/manage-matches" element={<ManageMatches />} />
+            <Route path="/admin/feedback" element={<AdminFeedback />} />
             <Route path="/admin/reports" element={<Reports />} />
             <Route path="/admin/profile" element={<AdminProfile />} />
           </Route>

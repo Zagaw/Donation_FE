@@ -31,6 +31,7 @@ const DonorLayout = ({ children }) => {
     { name: 'My Donations', path: '/donor/donations', icon: FaList },
     { name: 'Donation History', path: '/donor/history', icon: FaHistory },
     { name: 'Certificates', path: '/donor/certificates', icon: FaCertificate },
+    { name: 'Feedbacks', path: '/donor/feedback', icon: FaCertificate },
     { name: 'Profile', path: '/donor/profile', icon: FaUser },
   ];
 

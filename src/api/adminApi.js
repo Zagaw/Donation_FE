@@ -145,5 +145,28 @@ export const adminApi = {
 
   completeMatch: (matchId) => {
     return api.post(`/admin/matches/${matchId}/complete`);
+  },
+
+  // Certificates
+  getEligibleMatchesForCertificates: () => {
+    return api.get('/admin/certificates/eligible-matches');
+  },
+
+  getAllCertificates: () => {
+    return api.get('/admin/certificates');
+  },
+
+  generateCertificate: (data) => {
+    return api.post('/admin/certificates/generate', data);
+  },
+
+  downloadCertificate: (id) => {
+    return api.get(`/admin/certificates/${id}/download`, {
+      responseType: 'blob'
+    });
+  },
+
+  deleteCertificate: (id) => {
+    return api.delete(`/admin/certificates/${id}`);
   }
 };
