@@ -27,6 +27,10 @@ export const requestApi = {
     return api.delete(`/receiver/requests/${id}`);
   },
 
+  requestExecution: (matchId) => {
+    return api.post(`/receiver/matches/${matchId}/request-execution`);
+  },
+
   // Update request
   /*update: (id, requestData) => {
     return api.put(`/receiver/requests/${id}`, requestData, {
@@ -49,5 +53,5 @@ export const requestApi = {
      // Get approved requests (for donors)
   getApprovedRequests: () => {
     return api.get('/donor/requests/approved');
-  }
+  },
 };

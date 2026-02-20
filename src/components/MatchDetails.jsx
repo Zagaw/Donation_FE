@@ -423,12 +423,7 @@ const MatchDetails = () => {
           >
             Go Back
           </button>
-          <button
-            onClick={() => window.print()}
-            className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-          >
-            Print Details
-          </button>
+          
         </div>
       </div>
     </div>

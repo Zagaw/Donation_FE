@@ -47,6 +47,10 @@ export const donationApi = {
     return api.get('/donor/requests/approved');
   },
 
+  requestExecution: (matchId) => {
+    return api.post(`/donor/matches/${matchId}/request-execution`);
+  },
+
   // Update donation status (admin)
   /*updateStatus: (id, status) => {
     return api.put(`/admin/donations/${id}/status`, { status });

@@ -27,9 +27,10 @@ const ReceiverRequests = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('requests'); // 'requests' or 'matches'
+  const [activeTab, setActiveTab] = useState('requests');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -69,6 +70,26 @@ const ReceiverRequests = () => {
 
   const handleViewMatch = (matchId) => {
     navigate(`/receiver/matches/${matchId}`);
+  };
+
+  const handleRequestExecution = async (matchId) => {
+    if (!window.confirm('Have you received the donation? This will notify the admin to mark this match as executed.')) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await requestApi.requestExecution(matchId);
+      alert('Request sent to admin successfully!');
+      // Refresh matches to show the requested state
+      const matchesRes = await requestApi.getMyMatches();
+      setMatches(matchesRes.data.matches || []);
+    } catch (error) {
+      console.error('Error requesting execution:', error);
+      alert(error.response?.data?.message || 'Failed to send request');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -325,15 +346,39 @@ const ReceiverRequests = () => {
                         }`}>
                           {match.matchType === 'interest' ? 'Interest-Based' : 'Manual Match'}
                         </span>
+
+                        {/* Show execution request status */}
+                        {match.status === 'approved' && match.execution_requested && (
+                          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-xs text-blue-700 flex items-center">
+                              <FaClock className="mr-1 animate-pulse" />
+                              Execution requested - Waiting for admin
+                            </p>
+                          </div>
+                        )}
                       </div>
 
-                      <button
-                        onClick={() => handleViewMatch(match.matchId)}
-                        className="w-full mt-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
-                      >
-                        <FaEye className="mr-2" />
-                        View Match Details
-                      </button>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => handleViewMatch(match.matchId)}
+                          className="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center"
+                        >
+                          <FaEye className="mr-2" />
+                          View Match Details
+                        </button>
+
+                        {/* Request Execution Button - only show for approved matches that haven't been requested */}
+                        {match.status === 'approved' && !match.execution_requested && (
+                          <button
+                            onClick={() => handleRequestExecution(match.matchId)}
+                            disabled={actionLoading}
+                            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center disabled:opacity-50"
+                          >
+                            {actionLoading ? <FaSpinner className="animate-spin mr-2" /> : <FaTruck className="mr-2" />}
+                            Request Execution
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
